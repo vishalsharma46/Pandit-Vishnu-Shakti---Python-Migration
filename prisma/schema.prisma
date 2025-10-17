@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  phone          String?        @unique
+  waId           String?        @unique
+  name           String?
+  dateOfBirth    DateTime?      @db.Date
+  timeOfBirth    String?        // Birth time (HH:MM format)
+  placeOfBirth   String?        // Birth place
+
+  // Moon Rashi (Janma Rashi; sidereal Lahiri) — newly added fields
+  janmRaashiCode String?        // e.g., "mesh", "makar"
+  janmRaashiName String?        // e.g., "Aries", "Capricorn"
+  janmRaashiHi   String?        // e.g., "Mesh", "Makar"
+
+  isOnboarded    Boolean        @default(false)
+  onboardingStep String?        // Current onboarding step
+  lastActiveAt   DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  subscriptions  Subscription[]
+  messages       Message[]
+  interactions   UserInteraction[]
+  preferences    UserPreference?
+}
+
+model Subscription {
+  id               String   @id @default(uuid())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  provider         String
+  status           String
+  currentPeriodEnd DateTime?
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String   // "user" | "assistant" | "system"
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model UserInteraction {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  interactionType String   // "qa" | "horoscope" | "onboarding"
+  userMessage     String
+  aiResponse      String
+  responseTime    Int      // Response time in milliseconds
+  tokensUsed      Int?     // Number of tokens used
+  modelUsed       String   // Model identifier
+  success         Boolean  @default(true)
+  errorMessage    String?  // Error message if success is false
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([interactionType])
+  @@index([modelUsed])
+}
+
+model UserPreference {
+  id                  String   @id @default(uuid())
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String   @unique
+  preferredLanguage   String   @default("hinglish") // "hinglish" | "hindi" | "english"
+  responseLength      String   @default("medium")   // "short" | "medium" | "long"
+  horoscopeFrequency  String   @default("daily")    // "daily" | "weekly" | "monthly"
+  notificationEnabled Boolean  @default(true)
+  lastHoroscopeDate   DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId])
+}

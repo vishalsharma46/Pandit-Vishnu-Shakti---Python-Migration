@@ -1,0 +1,35 @@
+# 🧱 Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# 🧰 Virtual environment
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# 🧾 Environment files
+.env
+.env.*
+!.env.example   # keep example env for reference
+
+# 🧠 IDE / Editor
+.vscode/
+.idea/
+*.swp
+
+# 🐳 Docker
+*.pid
+*.log
+*.db
+*.sqlite3
+
+# ⚙️ Prisma
+prisma/generated/
+node_modules/
